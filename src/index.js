@@ -1,7 +1,7 @@
 import './styles.css';
 // import './js/apiService.js';
 
-import fetchGallery from './js/fetchGallery.js';
+import fetchGallery from './js/apiService.js';
 import galleryTemplate from './templates/gallery.hbs';
 import photoCardTemplate from './templates/photoCard.hbs';
 
@@ -26,17 +26,27 @@ let pageNumber = 1;
 let searchQuery = inputRef.value;
 
 // ==============СЛУШАТЕЛИ СОБЫТИЙ====================
-inputRef.addEventListener('input', debounce(renderGallery, 500));
+inputRef.addEventListener('input', debounce(initializeRenderGallery, 500));
 loadButtonRef.addEventListener('click', loadImages);
 
 
 // =========ФУНКЦИЯ СОЗДАНИЯ ГАЛЛЕРЕИИ==============
-function renderGallery(event) {
-  searchQuery = event.target.value;
-  // if (searchQuery !== "") {
-  //   searchQuery = event.target.value;
-  // }
-// ================Получение данных для заполнения шаблона галереии============== 
+function initializeRenderGallery(event) {
+searchQuery = event.target.value;
+  if (searchQuery !== "") {
+    galleryRef.innerHTML = "";
+  }
+  renderGallery(searchQuery);
+}
+
+// function renderGallery(event) {
+//   searchQuery = event.target.value;
+//   if (searchQuery !== "") {
+//     galleryRef.innerHTML = "";
+//   }
+
+function renderGallery(searchQuery) {
+  // ================Получение данных для заполнения шаблона галереии============== 
   fetchGallery(key, pageNumber, searchQuery).then(data => {
     const photoCard = photoCardTemplate(data.hits);
     const gallery = galleryTemplate(data.hits);
@@ -51,14 +61,12 @@ function renderGallery(event) {
       const targetGalleryListRef = galleryListRef.[countGalleryList - 1];
       targetGalleryListRef.insertAdjacentHTML('beforeend', photoCard);
       
-      // ======== Работа с большим изображением =======
-      const imgRef = document.querySelector("img");
-      // =======Открытие изображения по клику======
-      imgRef.onclick = (event) => {
+      // =======Открытие большого изображения по клику======
+      galleryRef.onclick = (event) => {
         const src = event.target.dataset.url;
         const largeImg = basicLightbox.create(`<img src=${src} class="show">`);
         largeImg.show();
-        // =======Закрытие изображения по клику======
+        // =======Закрытие большого изображения по клику======
         const closelargeImg = function () { largeImg.close() };
         const showImgRef = document.querySelector(".show");
         showImgRef.addEventListener('click', closelargeImg);
@@ -79,32 +87,12 @@ function renderGallery(event) {
       return error;
     }
   }).catch(error => console.log(error));
-  // =========================ОЧИСТКА СТРАНИЦЫ ==============
-  // console.log(searchQuery);
-  // inputRef.removeEventListener('input', debounce(renderGallery, 500));
-  //   inputRef.addEventListener("input", cleanInput);
-  // function cleanInput() {
-  //   searchQuery = "";
-  //     inputRef.value = "";
-  //       galleryRef.innerHTML = "";
-  //     }
-  //   console.log(searchQuery);
-  // if (searchQuery !== "") {
-  //   inputRef.removeEventListener('input', debounce(renderGallery, 500));
-  //   inputRef.addEventListener("input", debounce(cleanInput, 500));
-  //   function cleanInput() {
-  //     inputRef.value = "";
-  //       galleryRef.innerHTML = "";
-  //     }
-  //   console.log(searchQuery);
-  // }
 }
 
 // ================ФУНКЦИЯ ДОЗАГРУЗКИ ИЗОБРАЖЕНИЙ ПО СОБЫТИЮ И СКРОЛЛА============== 
-function loadImages(event) {
+function loadImages() {
 pageNumber += 1;
-  searchQuery = inputRef.value;
-  renderGallery(event);
+  renderGallery(searchQuery);
 
 // ================Функция определения текущего положения на странице============== 
   function currentYPosition() {
